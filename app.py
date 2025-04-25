@@ -96,108 +96,126 @@ with st.sidebar:
 # Main content area
 if uploaded_file is not None:
     # Load and preprocess data
-    try:
-        df = pd.read_csv(uploaded_file)
-        
-        # Display tabs for different sections
-        tabs = st.tabs(["📋 Data Overview", "🧮 Preprocessing", "🔮 Predictions", "📈 Visualizations", "📊 Advanced Analytics"])
-        
-        # Tab 1: Data Overview
-        with tabs[0]:
-            st.markdown('<div class="sub-header">📁 Dataset Summary</div>', unsafe_allow_html=True)
+    # Load and preprocess data
+        try:
+            df = pd.read_csv(uploaded_file)
             
-            # Basic info in columns
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric(label="Total Records", value=df.shape[0])
-            with col2:
-                st.metric(label="Total Columns", value=df.shape[1])
-            with col3:
-                st.metric(label="Missing Values", value=df.isnull().sum().sum())
+            # Display tabs for different sections
+            tabs = st.tabs(["📋 Data Overview", "🧮 Preprocessing", "🔮 Predictions", "📈 Visualizations", "📊 Advanced Analytics"])
             
-            # Display sample data
-            st.markdown('<div class="sub-header">Sample Data</div>', unsafe_allow_html=True)
-            st.dataframe(df.head(10), use_container_width=True)
-            
-            # Display data types and missing values
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown('<div class="sub-header">Data Types</div>', unsafe_allow_html=True)
-                st.dataframe(pd.DataFrame({
-                    'Column': df.columns,
-                    'Data Type': df.dtypes,
-                }), use_container_width=True)
-            with col2:
-                st.markdown('<div class="sub-header">Missing Values</div>', unsafe_allow_html=True)
-                missing_df = pd.DataFrame({
-                    'Column': df.columns,
-                    'Missing Values': df.isnull().sum(),
-                    'Percentage': (df.isnull().sum() / len(df) * 100).round(2)
-                })
-                st.dataframe(missing_df, use_container_width=True)
-            
-            # Summary statistics
-            st.markdown('<div class="sub-header">Summary Statistics</div>', unsafe_allow_html=True)
-            st.dataframe(df.describe().T, use_container_width=True)
-            
-        # Tab 2: Data Preprocessing
-        with tabs[1]:
-            st.markdown('<div class="sub-header">Data Preprocessing</div>', unsafe_allow_html=True)
-            
-            # Clean data
-            df_processed = df.copy()
-            
-            # Convert 'Date' to datetime
-            df_processed['Date'] = pd.to_datetime(df_processed['Date'], errors='coerce')
-            
-            # Handle missing values
-            for col in df_processed.columns:
-                missing_count = df_processed[col].isnull().sum()
-                if missing_count > 0:
-                    if pd.api.types.is_numeric_dtype(df_processed[col]):
-                        df_processed[col] = df_processed[col].fillna(df_processed[col].median())
-                    else:
-                        df_processed[col] = df_processed[col].fillna("Unknown")
-            
-            # Feature engineering
-            st.markdown('<div class="sub-header">Feature Engineering</div>', unsafe_allow_html=True)
-            
-            # Extract date features
-            df_processed['Year'] = df_processed['Date'].dt.year
-            df_processed['Month'] = df_processed['Date'].dt.month
-            df_processed['Day'] = df_processed['Date'].dt.day
-            df_processed['Weekday'] = df_processed['Date'].dt.weekday
-            df_processed['Quarter'] = df_processed['Date'].dt.quarter
-            df_processed['Week'] = df_processed['Date'].dt.isocalendar().week
-            
-            # Calculate additional features
-            df_processed['Return_Rate'] = np.where(df_processed['Purchased Item Count'] > 0, 
-                                                  (df_processed['Refunded Item Count'] / df_processed['Purchased Item Count']), 0)
-            df_processed['Days_Since_Purchase'] = (datetime.now() - df_processed['Date']).dt.days
-            
-            # Display the processed data
-            st.dataframe(df_processed.head(10), use_container_width=True)
-            
-            # Show feature importance based on a simple correlation
-            st.markdown('<div class="sub-header">Feature Correlation with Returns</div>', unsafe_allow_html=True)
-            
-            # Calculate correlations for numeric columns
-            numeric_cols = df_processed.select_dtypes(include=['number']).columns
-            if 'Refunds' in numeric_cols:
-                correlations = df_processed[numeric_cols].corr()['Refunds'].sort_values(ascending=False)
+            # Tab 1: Data Overview
+            with tabs[0]:
+                st.markdown('<div class="sub-header">📁 Dataset Summary</div>', unsafe_allow_html=True)
                 
-                # Plot correlation chart
-                fig = px.bar(
-                    x=correlations.index,
-                    y=correlations.values,
-                    labels={'x': 'Feature', 'y': 'Correlation with Refunds'},
-                    title='Feature Correlation with Refunds',
-                    color=correlations.values,
-                    color_continuous_scale='RdBu_r'
-                )
-                fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
+                # Basic info in columns
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(label="Total Records", value=df.shape[0])
+                with col2:
+                    st.metric(label="Total Columns", value=df.shape[1])
+                with col3:
+                    st.metric(label="Missing Values", value=df.isnull().sum().sum())
+                
+                # Display sample data
+                st.markdown('<div class="sub-header">Sample Data</div>', unsafe_allow_html=True)
+                st.dataframe(df.head(10), use_container_width=True)
+                
+                # Display data types and missing values
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown('<div class="sub-header">Data Types</div>', unsafe_allow_html=True)
+                    st.dataframe(pd.DataFrame({
+                        'Column': df.columns,
+                        'Data Type': df.dtypes,
+                    }), use_container_width=True)
+                with col2:
+                    st.markdown('<div class="sub-header">Missing Values</div>', unsafe_allow_html=True)
+                    missing_df = pd.DataFrame({
+                        'Column': df.columns,
+                        'Missing Values': df.isnull().sum(),
+                        'Percentage': (df.isnull().sum() / len(df) * 100).round(2)
+                    })
+                    st.dataframe(missing_df, use_container_width=True)
+                
+                # Summary statistics
+                st.markdown('<div class="sub-header">Summary Statistics</div>', unsafe_allow_html=True)
+                st.dataframe(df.describe().T, use_container_width=True)
+                
+            # Tab 2: Data Preprocessing
+            with tabs[1]:
+                st.markdown('<div class="sub-header">Data Preprocessing</div>', unsafe_allow_html=True)
+                
+                # Clean data
+                df_processed = df.copy()
+                
+                # Convert 'Date' to datetime with better error handling
+                try:
+                    # Try to convert with explicit format first (assuming DD/MM/YYYY format)
+                    df_processed['Date'] = pd.to_datetime(df_processed['Date'], errors='coerce', format='%d/%m/%Y')
+                    
+                    # Check if any dates were invalid and remove those rows
+                    invalid_dates = df_processed['Date'].isna().sum()
+                    if invalid_dates > 0:
+                        st.warning(f"⚠️ Found {invalid_dates} invalid date entries. These rows will be excluded from analysis.")
+                        df_processed = df_processed.dropna(subset=['Date'])
+                    
+                    # Only proceed if we have valid dates
+                    if len(df_processed) > 0:
+                        # Feature engineering
+                        st.markdown('<div class="sub-header">Feature Engineering</div>', unsafe_allow_html=True)
+                        
+                        # Extract date features
+                        df_processed['Year'] = df_processed['Date'].dt.year
+                        df_processed['Month'] = df_processed['Date'].dt.month
+                        df_processed['Day'] = df_processed['Date'].dt.day
+                        df_processed['Weekday'] = df_processed['Date'].dt.weekday
+                        df_processed['Quarter'] = df_processed['Date'].dt.quarter
+                        df_processed['Week'] = df_processed['Date'].dt.isocalendar().week
+                        
+                        # Calculate additional features
+                        df_processed['Return_Rate'] = np.where(df_processed['Purchased Item Count'] > 0, 
+                                                            (df_processed['Refunded Item Count'] / df_processed['Purchased Item Count']), 0)
+                        
+                        try:
+                            df_processed['Days_Since_Purchase'] = (datetime.now() - df_processed['Date']).dt.days
+                        except Exception as e:
+                            st.warning(f"Could not calculate Days_Since_Purchase: {e}")
+                            df_processed['Days_Since_Purchase'] = 0  # Default value
+                        
+                        # Display the processed data
+                        st.dataframe(df_processed.head(10), use_container_width=True)
+                        
+                        # Show feature importance based on a simple correlation
+                        st.markdown('<div class="sub-header">Feature Correlation with Returns</div>', unsafe_allow_html=True)
+                        
+                        # Calculate correlations for numeric columns
+                        numeric_cols = df_processed.select_dtypes(include=['number']).columns
+                        if 'Refunds' in numeric_cols and len(df_processed) > 1:
+                            correlations = df_processed[numeric_cols].corr()['Refunds'].sort_values(ascending=False)
+                            
+                            # Plot correlation chart
+                            fig = px.bar(
+                                x=correlations.index,
+                                y=correlations.values,
+                                labels={'x': 'Feature', 'y': 'Correlation with Refunds'},
+                                title='Feature Correlation with Refunds',
+                                color=correlations.values,
+                                color_continuous_scale='RdBu_r'
+                            )
+                            fig.update_layout(xaxis_tickangle=-45)
+                            st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.error("No valid dates found in the data. Please check your date format.")
+                except Exception as e:
+                    st.error(f"Error processing dates: {e}")
+                    st.info("Please ensure your Date column is properly formatted (e.g., DD/MM/YYYY).")
             
+            # Continue with the rest of your existing code for Tabs 3, 4, and 5...
+            # (Keep the existing code for these tabs)
+            
+        except Exception as e:
+            st.error(f"Error processing data: {e}")
+            st.info("Please ensure your CSV contains the necessary columns for return forecasting.")
         # Tab 3: Predictions
         with tabs[2]:
             st.markdown('<div class="sub-header">Return Forecasting</div>', unsafe_allow_html=True)
@@ -693,10 +711,7 @@ if uploaded_file is not None:
             </div>
             """, unsafe_allow_html=True)
             
-    except Exception as e:
-        st.error(f"Error processing data: {e}")
-        st.info("Please ensure your CSV contains the necessary columns for return forecasting.")
-
+           
 else:
     # Display sample dashboard with demo data
     st.markdown('<div class="sub-header">Sample Dashboard Preview</div>', unsafe_allow_html=True)
